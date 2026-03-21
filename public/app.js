@@ -2,6 +2,8 @@ const form = document.getElementById('item-form');
 const itemsList = document.getElementById('items-list');
 const feedback = document.getElementById('feedback');
 const refreshBtn = document.getElementById('refresh-btn');
+const searchInput = document.getElementById('search-input');
+let allItems = [];
 
 function setFeedback(message, type = '') {
   feedback.textContent = message;
@@ -30,6 +32,22 @@ function renderItems(items) {
   });
 }
 
+function normalizeValue(value) {
+  return value.toLowerCase().trim();
+}
+
+function applySearchFilter() {
+  const query = normalizeValue(searchInput.value || '');
+
+  if (!query) {
+    renderItems(allItems);
+    return;
+  }
+
+  const filteredItems = allItems.filter((item) => normalizeValue(item.name).includes(query));
+  renderItems(filteredItems);
+}
+
 async function loadItems() {
   try {
     const response = await fetch('/api/items');
@@ -39,7 +57,8 @@ async function loadItems() {
       throw new Error(data.message || 'Errore nel caricamento oggetti');
     }
 
-    renderItems(data);
+    allItems = data;
+    applySearchFilter();
   } catch (error) {
     setFeedback(error.message, 'error');
   }
@@ -79,5 +98,6 @@ form.addEventListener('submit', async (event) => {
 });
 
 refreshBtn.addEventListener('click', loadItems);
+searchInput.addEventListener('input', applySearchFilter);
 
 loadItems();
