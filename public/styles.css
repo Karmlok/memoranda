@@ -70,11 +70,13 @@ label {
 }
 
 input,
+select,
 button {
   font: inherit;
 }
 
-input {
+input,
+select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -82,7 +84,8 @@ input {
   background: #fff;
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: 2px solid #aebeff;
   outline-offset: 1px;
 }
