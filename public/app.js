@@ -6,6 +6,10 @@ const itemsList = document.getElementById('items-list');
 const feedback = document.getElementById('feedback');
 const refreshBtn = document.getElementById('refresh-btn');
 const searchInput = document.getElementById('search-input');
+const roomInput = document.getElementById('room');
+const containerInput = document.getElementById('container');
+const roomSuggestions = document.getElementById('room-suggestions');
+const containerSuggestions = document.getElementById('container-suggestions');
 let allItems = [];
 let editingItemId = null;
 
@@ -54,6 +58,7 @@ function resetFormToCreateMode() {
   submitBtn.textContent = 'Salva';
   cancelEditBtn.classList.add('hidden');
   form.reset();
+  updateAutocomplete();
 }
 
 function startEditItem(itemId) {
@@ -73,11 +78,57 @@ function startEditItem(itemId) {
   form.elements.room.value = itemToEdit.room;
   form.elements.container.value = itemToEdit.container;
   form.elements.image.value = '';
+  updateAutocomplete();
   form.elements.name.focus();
 }
 
 function normalizeValue(value) {
   return value.toLowerCase().trim();
+}
+
+function getUniqueSuggestions(fieldName) {
+  const seen = new Set();
+  const suggestions = [];
+
+  allItems.forEach((item) => {
+    const rawValue = item[fieldName];
+    if (!rawValue || typeof rawValue !== 'string') {
+      return;
+    }
+
+    const value = rawValue.trim();
+    const normalized = normalizeValue(value);
+
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+
+    seen.add(normalized);
+    suggestions.push(value);
+  });
+
+  return suggestions.sort((a, b) => a.localeCompare(b, 'it'));
+}
+
+function fillSuggestionList(datalistElement, values) {
+  datalistElement.innerHTML = '';
+
+  values.forEach((value) => {
+    const option = document.createElement('option');
+    option.value = value;
+    datalistElement.appendChild(option);
+  });
+}
+
+function updateAutocomplete() {
+  const roomQuery = normalizeValue(roomInput.value || '');
+  const containerQuery = normalizeValue(containerInput.value || '');
+
+  const roomValues = getUniqueSuggestions('room').filter((value) => normalizeValue(value).includes(roomQuery));
+  const containerValues = getUniqueSuggestions('container').filter((value) => normalizeValue(value).includes(containerQuery));
+
+  fillSuggestionList(roomSuggestions, roomValues);
+  fillSuggestionList(containerSuggestions, containerValues);
 }
 
 function fileToDataUrl(file) {
@@ -112,6 +163,7 @@ async function loadItems() {
 
     allItems = data;
     applySearchFilter();
+    updateAutocomplete();
   } catch (error) {
     setFeedback(error.message, 'error');
   }
@@ -215,5 +267,7 @@ cancelEditBtn.addEventListener('click', () => {
 
 refreshBtn.addEventListener('click', loadItems);
 searchInput.addEventListener('input', applySearchFilter);
+roomInput.addEventListener('input', updateAutocomplete);
+containerInput.addEventListener('input', updateAutocomplete);
 
 loadItems();

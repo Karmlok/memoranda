@@ -23,12 +23,14 @@
 
           <div class="form-row">
             <label for="room">Stanza</label>
-            <input id="room" name="room" type="text" placeholder="es. Cucina" required />
+            <input id="room" name="room" type="text" placeholder="es. Cucina" list="room-suggestions" autocomplete="off" required />
+            <datalist id="room-suggestions"></datalist>
           </div>
 
           <div class="form-row">
             <label for="container">Contenitore</label>
-            <input id="container" name="container" type="text" placeholder="es. Cassetto in alto" required />
+            <input id="container" name="container" type="text" placeholder="es. Cassetto in alto" list="container-suggestions" autocomplete="off" required />
+            <datalist id="container-suggestions"></datalist>
           </div>
 
 
