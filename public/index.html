@@ -8,24 +8,32 @@
   </head>
   <body>
     <main class="container">
-      <h1>Memoranda</h1>
-      <p class="subtitle">Ricorda dove hai messo ogni oggetto.</p>
+      <header class="hero card">
+        <h1>Memoranda</h1>
+        <p class="subtitle">Ricorda dove hai messo ogni oggetto.</p>
+      </header>
 
       <section class="card">
         <h2>Aggiungi oggetto</h2>
         <form id="item-form">
-          <label for="name">Nome oggetto</label>
-          <input id="name" name="name" type="text" placeholder="es. Chiavi" required />
+          <div class="form-row">
+            <label for="name">Nome oggetto</label>
+            <input id="name" name="name" type="text" placeholder="es. Chiavi" required />
+          </div>
 
-          <label for="room">Stanza</label>
-          <input id="room" name="room" type="text" placeholder="es. Cucina" required />
+          <div class="form-row">
+            <label for="room">Stanza</label>
+            <input id="room" name="room" type="text" placeholder="es. Cucina" required />
+          </div>
 
-          <label for="container">Contenitore</label>
-          <input id="container" name="container" type="text" placeholder="es. Cassetto in alto" required />
+          <div class="form-row">
+            <label for="container">Contenitore</label>
+            <input id="container" name="container" type="text" placeholder="es. Cassetto in alto" required />
+          </div>
 
           <button type="submit">Salva</button>
         </form>
-        <p id="feedback" class="feedback"></p>
+        <p id="feedback" class="feedback" aria-live="polite"></p>
       </section>
 
       <section class="card">
@@ -33,8 +41,10 @@
           <h2>Oggetti salvati</h2>
           <button id="refresh-btn" type="button">Aggiorna</button>
         </div>
-        <label for="search-input">Cerca per nome</label>
-        <input id="search-input" type="text" placeholder="Scrivi il nome di un oggetto" />
+        <div class="search-row">
+          <label for="search-input">Cerca per nome</label>
+          <input id="search-input" type="text" placeholder="Scrivi il nome di un oggetto" />
+        </div>
         <ul id="items-list"></ul>
       </section>
     </main>
