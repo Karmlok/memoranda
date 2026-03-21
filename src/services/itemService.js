@@ -119,9 +119,53 @@ async function deleteItem(id) {
   return Boolean(result.changes);
 }
 
+async function replaceAllItems(items) {
+  const db = await initializeDatabase();
+
+  run(db, 'BEGIN TRANSACTION');
+
+  try {
+    run(db, 'DELETE FROM items');
+
+    items.forEach((item) => {
+      const normalizedItem = {
+        id: item.id || crypto.randomUUID(),
+        name: item.name.trim(),
+        room: item.room.trim(),
+        container: item.container.trim(),
+        imagePath: item.imagePath || null,
+        createdAt: item.createdAt || new Date().toISOString(),
+      };
+
+      run(
+        db,
+        `
+          INSERT INTO items (id, name, room, container, image_path, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `,
+        [
+          normalizedItem.id,
+          normalizedItem.name,
+          normalizedItem.room,
+          normalizedItem.container,
+          normalizedItem.imagePath,
+          normalizedItem.createdAt,
+        ],
+      );
+    });
+
+    run(db, 'COMMIT');
+    return items.length;
+  } catch (error) {
+    run(db, 'ROLLBACK');
+    throw error;
+  }
+}
+
 module.exports = {
   getAllItems,
   addItem,
   updateItem,
   deleteItem,
+  replaceAllItems,
 };
