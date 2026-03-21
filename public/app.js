@@ -28,8 +28,13 @@ function renderItems(items) {
   items.forEach((item) => {
     const li = document.createElement('li');
     li.className = 'item-card';
+    const imageHtml = item.imagePath
+      ? `<img src="${item.imagePath}" alt="${item.name}" class="item-image" loading="lazy" />`
+      : '<div class="item-image-placeholder">Nessuna immagine</div>';
+
     li.innerHTML = `
       <p class="item-name">${item.name}</p>
+      ${imageHtml}
       <div class="item-meta">
         <p><span class="meta-label">Stanza:</span> ${item.room}</p>
         <p><span class="meta-label">Contenitore:</span> ${item.container}</p>
@@ -67,11 +72,21 @@ function startEditItem(itemId) {
   form.elements.name.value = itemToEdit.name;
   form.elements.room.value = itemToEdit.room;
   form.elements.container.value = itemToEdit.container;
+  form.elements.image.value = '';
   form.elements.name.focus();
 }
 
 function normalizeValue(value) {
   return value.toLowerCase().trim();
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Impossibile leggere il file immagine.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function applySearchFilter() {
@@ -106,13 +121,22 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   const formData = new FormData(form);
-  const payload = {
-    name: formData.get('name'),
-    room: formData.get('room'),
-    container: formData.get('container'),
-  };
+  const imageFile = formData.get('image');
 
   try {
+    let imageData = null;
+
+    if (imageFile && imageFile.size > 0) {
+      imageData = await fileToDataUrl(imageFile);
+    }
+
+    const payload = {
+      name: formData.get('name'),
+      room: formData.get('room'),
+      container: formData.get('container'),
+      imageData,
+      imageName: imageFile && imageFile.size > 0 ? imageFile.name : null,
+    };
     const isEditing = Boolean(editingItemId);
     const endpoint = isEditing ? `/api/items/${editingItemId}` : '/api/items';
     const method = isEditing ? 'PUT' : 'POST';
