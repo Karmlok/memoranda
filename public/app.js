@@ -17,6 +17,7 @@ const containerSuggestions = document.getElementById('container-suggestions');
 let allItems = [];
 let editingItemId = null;
 let selectedRoom = '';
+let pendingHighlightItemId = null;
 const expandedRooms = new Set();
 const expandedContainers = new Set();
 
@@ -87,11 +88,23 @@ function renderItems(items) {
 
     itemsList.appendChild(roomElement);
   });
+
+  if (pendingHighlightItemId) {
+    const highlightedCard = itemsList.querySelector(`[data-item-id="${pendingHighlightItemId}"]`);
+    if (highlightedCard) {
+      highlightedCard.classList.add('item-card--flash');
+      window.setTimeout(() => {
+        highlightedCard.classList.remove('item-card--flash');
+      }, 1900);
+    }
+    pendingHighlightItemId = null;
+  }
 }
 
 function createItemCard(item) {
   const li = document.createElement('li');
   li.className = 'item-card';
+  li.dataset.itemId = item.id;
   const imageHtml = item.imagePath
     ? `<img src="${item.imagePath}" alt="${item.name}" class="item-image" loading="lazy" />`
     : '<div class="item-image-placeholder">Nessuna immagine</div>';
@@ -442,8 +455,9 @@ form.addEventListener('submit', async (event) => {
     }
 
     const actionText = isEditing ? 'aggiornato' : 'salvato';
+    pendingHighlightItemId = data.id;
     resetFormToCreateMode();
-    setFeedback(`Oggetto ${actionText}: ${data.name}`, 'success');
+    setFeedback(`✅ Oggetto ${actionText}: ${data.name}`, 'success');
     await loadItems();
   } catch (error) {
     setFeedback(error.message, 'error');
@@ -491,8 +505,13 @@ itemsList.addEventListener('click', async (event) => {
     return;
   }
 
-  const confirmed = window.confirm('Vuoi davvero eliminare questo oggetto?');
+  const itemToDelete = allItems.find((item) => item.id === itemId);
+  const itemDescription = itemToDelete
+    ? `"${itemToDelete.name}" in ${itemToDelete.room} • ${itemToDelete.container}`
+    : 'questo oggetto';
+  const confirmed = window.confirm(`Confermi l'eliminazione di ${itemDescription}?`);
   if (!confirmed) {
+    setFeedback('Eliminazione annullata.', '');
     return;
   }
 
