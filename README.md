@@ -6,7 +6,8 @@ Web app per ricordarsi dove sono stati riposti gli oggetti (es. `chiavi -> cucin
 
 - Backend: Node.js + Express
 - Frontend: HTML/CSS/JS vanilla
-- Persistenza: file JSON (`src/data/items.json`)
+- Persistenza: SQLite (`src/data/items.db`)
+- Upload immagini: file locali in `uploads/`
 
 ## Avvio rapido
 
@@ -23,17 +24,19 @@ App disponibile su: `http://localhost:3000`
 Restituisce la lista degli oggetti salvati.
 
 ### `POST /api/items`
-Aggiunge un oggetto.
+Aggiunge un oggetto. Supporta JSON con immagine opzionale (`imageData` in formato base64 Data URL + `imageName`).
 
-Body JSON richiesto:
+Campi richiesti:
 
-```json
-{
-  "name": "Chiavi",
-  "room": "Cucina",
-  "container": "Cassetto cucina"
-}
-```
+- `name`
+- `room`
+- `container`
+
+### `PUT /api/items/:id`
+Aggiorna un oggetto. Supporta JSON con immagine opzionale (`imageData` + `imageName`).
+
+### `DELETE /api/items/:id`
+Elimina un oggetto.
 
 ## Struttura progetto
 
@@ -43,6 +46,7 @@ memoranda/
 │   ├── app.js
 │   ├── index.html
 │   └── styles.css
+├── uploads/
 ├── src/
 │   ├── app.js
 │   ├── server.js
@@ -53,10 +57,11 @@ memoranda/
 │   ├── services/
 │   │   └── itemService.js
 │   ├── utils/
-│   │   └── jsonStore.js
+│   │   └── sqliteStore.js
 │   ├── middlewares/
 │   │   └── errorHandler.js
 │   └── data/
+│       ├── items.db
 │       └── items.json
 └── package.json
 ```
