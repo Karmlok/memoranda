@@ -6,12 +6,14 @@ const itemsList = document.getElementById('items-list');
 const feedback = document.getElementById('feedback');
 const refreshBtn = document.getElementById('refresh-btn');
 const searchInput = document.getElementById('search-input');
+const roomFilter = document.getElementById('room-filter');
 const roomInput = document.getElementById('room');
 const containerInput = document.getElementById('container');
 const roomSuggestions = document.getElementById('room-suggestions');
 const containerSuggestions = document.getElementById('container-suggestions');
 let allItems = [];
 let editingItemId = null;
+let selectedRoom = '';
 
 function setFeedback(message, type = '') {
   feedback.textContent = message;
@@ -142,14 +144,42 @@ function fileToDataUrl(file) {
 
 function applySearchFilter() {
   const query = normalizeValue(searchInput.value || '');
+  const roomQuery = normalizeValue(selectedRoom);
 
-  if (!query) {
-    renderItems(allItems);
-    return;
+  const filteredItems = allItems.filter((item) => {
+    const itemName = normalizeValue(item.name || '');
+    const itemRoom = normalizeValue(item.room || '');
+    const matchesName = !query || itemName.includes(query);
+    const matchesRoom = !roomQuery || itemRoom === roomQuery;
+
+    return matchesName && matchesRoom;
+  });
+
+  renderItems(filteredItems);
+}
+
+function updateRoomFilterOptions() {
+  const roomOptions = getUniqueSuggestions('room');
+  const selectedValueStillExists = roomOptions.some((room) => normalizeValue(room) === normalizeValue(selectedRoom));
+
+  if (selectedRoom && !selectedValueStillExists) {
+    selectedRoom = '';
   }
 
-  const filteredItems = allItems.filter((item) => normalizeValue(item.name).includes(query));
-  renderItems(filteredItems);
+  roomFilter.innerHTML = '';
+
+  const allOption = document.createElement('option');
+  allOption.value = '';
+  allOption.textContent = 'Tutte';
+  roomFilter.appendChild(allOption);
+
+  roomOptions.forEach((room) => {
+    const option = document.createElement('option');
+    option.value = room;
+    option.textContent = room;
+    option.selected = normalizeValue(room) === normalizeValue(selectedRoom);
+    roomFilter.appendChild(option);
+  });
 }
 
 async function loadItems() {
@@ -162,6 +192,7 @@ async function loadItems() {
     }
 
     allItems = data;
+    updateRoomFilterOptions();
     applySearchFilter();
     updateAutocomplete();
   } catch (error) {
@@ -267,6 +298,10 @@ cancelEditBtn.addEventListener('click', () => {
 
 refreshBtn.addEventListener('click', loadItems);
 searchInput.addEventListener('input', applySearchFilter);
+roomFilter.addEventListener('change', (event) => {
+  selectedRoom = event.target.value;
+  applySearchFilter();
+});
 roomInput.addEventListener('input', updateAutocomplete);
 containerInput.addEventListener('input', updateAutocomplete);
 
