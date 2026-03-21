@@ -5,6 +5,9 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const itemsList = document.getElementById('items-list');
 const feedback = document.getElementById('feedback');
 const refreshBtn = document.getElementById('refresh-btn');
+const exportBtn = document.getElementById('export-btn');
+const importBtn = document.getElementById('import-btn');
+const importFileInput = document.getElementById('import-file');
 const searchInput = document.getElementById('search-input');
 const roomFilter = document.getElementById('room-filter');
 const roomInput = document.getElementById('room');
@@ -270,6 +273,78 @@ function fileToDataUrl(file) {
   });
 }
 
+
+
+function downloadJsonFile(content, filename) {
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportBackup() {
+  try {
+    const response = await fetch('/api/items/export');
+    const backupText = await response.text();
+
+    if (!response.ok) {
+      let message = "Errore durante l'esportazione del backup.";
+      try {
+        const errorData = JSON.parse(backupText);
+        message = errorData.message || message;
+      } catch (parseError) {
+        // noop
+      }
+      throw new Error(message);
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    downloadJsonFile(backupText, `memoranda-backup-${today}.json`);
+    setFeedback('Backup esportato con successo.', 'success');
+  } catch (error) {
+    setFeedback(error.message, 'error');
+  }
+}
+
+async function importBackupFile(file) {
+  try {
+    const fileText = await file.text();
+    let parsedJson;
+
+    try {
+      parsedJson = JSON.parse(fileText);
+    } catch (error) {
+      throw new Error('File JSON non valido.');
+    }
+
+    const response = await fetch('/api/items/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parsedJson),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Errore durante l'importazione del backup.");
+    }
+
+    setFeedback(data.message, 'success');
+    resetFormToCreateMode();
+    await loadItems();
+  } catch (error) {
+    setFeedback(error.message, 'error');
+  } finally {
+    importFileInput.value = '';
+  }
+}
 function applySearchFilter() {
   const query = normalizeValue(searchInput.value || '');
   const roomQuery = normalizeValue(selectedRoom);
@@ -457,4 +532,17 @@ roomFilter.addEventListener('change', (event) => {
 roomInput.addEventListener('input', updateAutocomplete);
 containerInput.addEventListener('input', updateAutocomplete);
 
+
+
+exportBtn.addEventListener('click', exportBackup);
+importBtn.addEventListener('click', () => importFileInput.click());
+importFileInput.addEventListener('change', async (event) => {
+  const [file] = event.target.files;
+
+  if (!file) {
+    return;
+  }
+
+  await importBackupFile(file);
+});
 loadItems();

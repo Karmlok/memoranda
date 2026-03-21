@@ -50,7 +50,12 @@
       <section class="card">
         <div class="list-header">
           <h2>Oggetti salvati</h2>
-          <button id="refresh-btn" type="button">Aggiorna</button>
+          <div class="list-actions">
+            <button id="export-btn" type="button" class="btn-secondary">Esporta backup</button>
+            <button id="import-btn" type="button" class="btn-secondary">Importa backup</button>
+            <input id="import-file" type="file" accept="application/json" class="hidden" />
+            <button id="refresh-btn" type="button">Aggiorna</button>
+          </div>
         </div>
         <div class="search-row">
           <label for="search-input">Cerca per nome</label>
