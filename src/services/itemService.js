@@ -1,15 +1,29 @@
 const crypto = require('crypto');
-const { readJsonFile, writeJsonFile } = require('../utils/jsonStore');
-
-const ITEMS_FILE = 'src/data/items.json';
+const { all, initializeDatabase, run } = require('../utils/sqliteStore');
 
 async function getAllItems() {
-  const items = await readJsonFile(ITEMS_FILE);
-  return items;
+  const db = await initializeDatabase();
+
+  const rows = await all(
+    db,
+    `
+      SELECT id, name, room, container, created_at
+      FROM items
+      ORDER BY datetime(created_at) DESC
+    `,
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    room: row.room,
+    container: row.container,
+    createdAt: row.created_at,
+  }));
 }
 
 async function addItem({ name, room, container }) {
-  const items = await readJsonFile(ITEMS_FILE);
+  const db = await initializeDatabase();
 
   const newItem = {
     id: crypto.randomUUID(),
@@ -19,8 +33,20 @@ async function addItem({ name, room, container }) {
     createdAt: new Date().toISOString(),
   };
 
-  items.push(newItem);
-  await writeJsonFile(ITEMS_FILE, items);
+  await run(
+    db,
+    `
+      INSERT INTO items (id, name, room, container, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    [
+      newItem.id,
+      newItem.name,
+      newItem.room,
+      newItem.container,
+      newItem.createdAt,
+    ],
+  );
 
   return newItem;
 }
