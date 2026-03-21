@@ -15,6 +15,7 @@ function renderItems(items) {
 
   if (!items.length) {
     const li = document.createElement('li');
+    li.className = 'empty-state';
     li.textContent = 'Nessun oggetto salvato per ora.';
     itemsList.appendChild(li);
     return;
@@ -22,11 +23,13 @@ function renderItems(items) {
 
   items.forEach((item) => {
     const li = document.createElement('li');
-    li.className = 'item-row';
+    li.className = 'item-card';
     li.innerHTML = `
-      <p class="item-name"><strong>${item.name}</strong></p>
-      <p><span class="item-label">Stanza:</span> ${item.room}</p>
-      <p><span class="item-label">Contenitore:</span> ${item.container}</p>
+      <p class="item-name">${item.name}</p>
+      <div class="item-meta">
+        <p><span class="meta-label">Stanza:</span> ${item.room}</p>
+        <p><span class="meta-label">Contenitore:</span> ${item.container}</p>
+      </div>
     `;
     itemsList.appendChild(li);
   });
