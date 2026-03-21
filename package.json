@@ -1,0 +1,21 @@
+{
+  "name": "memoranda",
+  "version": "1.0.0",
+  "description": "Web app per ricordare dove si trovano gli oggetti",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "express",
+    "memoranda",
+    "inventory",
+    "node"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memoranda</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Memoranda</h1>
+      <p class="subtitle">Ricorda dove hai messo ogni oggetto.</p>
+
+      <section class="card">
+        <h2>Aggiungi oggetto</h2>
+        <form id="item-form">
+          <label for="name">Oggetto</label>
+          <input id="name" name="name" type="text" placeholder="es. Chiavi" required />
+
+          <label for="location">Dove si trova</label>
+          <input id="location" name="location" type="text" placeholder="es. Cassetto cucina" required />
+
+          <button type="submit">Salva</button>
+        </form>
+        <p id="feedback" class="feedback"></p>
+      </section>
+
+      <section class="card">
+        <div class="list-header">
+          <h2>Oggetti salvati</h2>
+          <button id="refresh-btn" type="button">Aggiorna</button>
+        </div>
+        <ul id="items-list"></ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
