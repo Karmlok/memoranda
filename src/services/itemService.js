@@ -8,13 +8,14 @@ async function getAllItems() {
   return items;
 }
 
-async function addItem({ name, location }) {
+async function addItem({ name, room, container }) {
   const items = await readJsonFile(ITEMS_FILE);
 
   const newItem = {
     id: crypto.randomUUID(),
     name: name.trim(),
-    location: location.trim(),
+    room: room.trim(),
+    container: container.trim(),
     createdAt: new Date().toISOString(),
   };
 

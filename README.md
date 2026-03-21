@@ -1,6 +1,6 @@
 # Memoranda
 
-Web app per ricordarsi dove sono stati riposti gli oggetti (es. `chiavi -> cassetto cucina`).
+Web app per ricordarsi dove sono stati riposti gli oggetti (es. `chiavi -> cucina / cassetto cucina`).
 
 ## Stack
 
@@ -30,7 +30,8 @@ Body JSON richiesto:
 ```json
 {
   "name": "Chiavi",
-  "location": "Cassetto cucina"
+  "room": "Cucina",
+  "container": "Cassetto cucina"
 }
 ```
 

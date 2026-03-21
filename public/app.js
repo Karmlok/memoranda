@@ -20,7 +20,12 @@ function renderItems(items) {
 
   items.forEach((item) => {
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${item.name}</strong> → ${item.location}`;
+    li.className = 'item-row';
+    li.innerHTML = `
+      <p class="item-name"><strong>${item.name}</strong></p>
+      <p><span class="item-label">Stanza:</span> ${item.room}</p>
+      <p><span class="item-label">Contenitore:</span> ${item.container}</p>
+    `;
     itemsList.appendChild(li);
   });
 }
@@ -46,7 +51,8 @@ form.addEventListener('submit', async (event) => {
   const formData = new FormData(form);
   const payload = {
     name: formData.get('name'),
-    location: formData.get('location'),
+    room: formData.get('room'),
+    container: formData.get('container'),
   };
 
   try {
