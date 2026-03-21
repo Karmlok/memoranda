@@ -1,9 +1,13 @@
 const form = document.getElementById('item-form');
+const formTitle = document.getElementById('form-title');
+const submitBtn = document.getElementById('submit-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const itemsList = document.getElementById('items-list');
 const feedback = document.getElementById('feedback');
 const refreshBtn = document.getElementById('refresh-btn');
 const searchInput = document.getElementById('search-input');
 let allItems = [];
+let editingItemId = null;
 
 function setFeedback(message, type = '') {
   feedback.textContent = message;
@@ -30,9 +34,40 @@ function renderItems(items) {
         <p><span class="meta-label">Stanza:</span> ${item.room}</p>
         <p><span class="meta-label">Contenitore:</span> ${item.container}</p>
       </div>
+      <div class="item-actions">
+        <button type="button" class="item-action-btn btn-secondary edit-btn" data-id="${item.id}">Modifica</button>
+        <button type="button" class="item-action-btn delete-btn" data-id="${item.id}">Elimina</button>
+      </div>
     `;
     itemsList.appendChild(li);
   });
+}
+
+function resetFormToCreateMode() {
+  editingItemId = null;
+  formTitle.textContent = 'Aggiungi oggetto';
+  submitBtn.textContent = 'Salva';
+  cancelEditBtn.classList.add('hidden');
+  form.reset();
+}
+
+function startEditItem(itemId) {
+  const itemToEdit = allItems.find((item) => item.id === itemId);
+
+  if (!itemToEdit) {
+    setFeedback('Oggetto non trovato per la modifica.', 'error');
+    return;
+  }
+
+  editingItemId = itemToEdit.id;
+  formTitle.textContent = 'Modifica oggetto';
+  submitBtn.textContent = 'Aggiorna';
+  cancelEditBtn.classList.remove('hidden');
+
+  form.elements.name.value = itemToEdit.name;
+  form.elements.room.value = itemToEdit.room;
+  form.elements.container.value = itemToEdit.container;
+  form.elements.name.focus();
 }
 
 function normalizeValue(value) {
@@ -78,8 +113,12 @@ form.addEventListener('submit', async (event) => {
   };
 
   try {
-    const response = await fetch('/api/items', {
-      method: 'POST',
+    const isEditing = Boolean(editingItemId);
+    const endpoint = isEditing ? `/api/items/${editingItemId}` : '/api/items';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const response = await fetch(endpoint, {
+      method,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -92,12 +131,62 @@ form.addEventListener('submit', async (event) => {
       throw new Error(data.message || 'Errore durante il salvataggio');
     }
 
-    form.reset();
-    setFeedback(`Oggetto salvato: ${data.name}`, 'success');
+    const actionText = isEditing ? 'aggiornato' : 'salvato';
+    resetFormToCreateMode();
+    setFeedback(`Oggetto ${actionText}: ${data.name}`, 'success');
     await loadItems();
   } catch (error) {
     setFeedback(error.message, 'error');
   }
+});
+
+itemsList.addEventListener('click', async (event) => {
+  const target = event.target;
+  const itemId = target.dataset.id;
+
+  if (!itemId) {
+    return;
+  }
+
+  if (target.classList.contains('edit-btn')) {
+    startEditItem(itemId);
+    return;
+  }
+
+  if (!target.classList.contains('delete-btn')) {
+    return;
+  }
+
+  const confirmed = window.confirm('Vuoi davvero eliminare questo oggetto?');
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/items/${itemId}`, {
+      method: 'DELETE',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Errore durante l'eliminazione");
+    }
+
+    if (editingItemId === itemId) {
+      resetFormToCreateMode();
+    }
+
+    setFeedback(data.message, 'success');
+    await loadItems();
+  } catch (error) {
+    setFeedback(error.message, 'error');
+  }
+});
+
+cancelEditBtn.addEventListener('click', () => {
+  resetFormToCreateMode();
+  setFeedback('Modifica annullata.');
 });
 
 refreshBtn.addEventListener('click', loadItems);

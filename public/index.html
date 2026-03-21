@@ -14,7 +14,7 @@
       </header>
 
       <section class="card">
-        <h2>Aggiungi oggetto</h2>
+        <h2 id="form-title">Aggiungi oggetto</h2>
         <form id="item-form">
           <div class="form-row">
             <label for="name">Nome oggetto</label>
@@ -31,7 +31,10 @@
             <input id="container" name="container" type="text" placeholder="es. Cassetto in alto" required />
           </div>
 
-          <button type="submit">Salva</button>
+          <div class="form-actions">
+            <button id="submit-btn" type="submit">Salva</button>
+            <button id="cancel-edit-btn" type="button" class="btn-secondary hidden">Annulla modifica</button>
+          </div>
         </form>
         <p id="feedback" class="feedback" aria-live="polite"></p>
       </section>

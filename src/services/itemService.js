@@ -51,7 +51,51 @@ async function addItem({ name, room, container }) {
   return newItem;
 }
 
+async function updateItem(id, { name, room, container }) {
+  const db = await initializeDatabase();
+
+  const updatedItem = {
+    id,
+    name: name.trim(),
+    room: room.trim(),
+    container: container.trim(),
+  };
+
+  const result = await run(
+    db,
+    `
+      UPDATE items
+      SET name = ?, room = ?, container = ?
+      WHERE id = ?
+    `,
+    [updatedItem.name, updatedItem.room, updatedItem.container, updatedItem.id],
+  );
+
+  if (!result.changes) {
+    return null;
+  }
+
+  return updatedItem;
+}
+
+async function deleteItem(id) {
+  const db = await initializeDatabase();
+
+  const result = await run(
+    db,
+    `
+      DELETE FROM items
+      WHERE id = ?
+    `,
+    [id],
+  );
+
+  return Boolean(result.changes);
+}
+
 module.exports = {
   getAllItems,
   addItem,
+  updateItem,
+  deleteItem,
 };

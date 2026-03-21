@@ -101,6 +101,25 @@ button:hover {
   background: var(--primary-hover);
 }
 
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: #e8eeff;
+  color: #253968;
+}
+
+.btn-secondary:hover {
+  background: #dbe5ff;
+}
+
+.hidden {
+  display: none;
+}
+
 .list-header {
   margin-bottom: 0.7rem;
   display: flex;
@@ -128,6 +147,25 @@ button:hover {
 .item-card {
   display: grid;
   gap: 0.55rem;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.item-action-btn {
+  flex: 1;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.delete-btn {
+  background: #c63737;
+}
+
+.delete-btn:hover {
+  background: #aa2929;
 }
 
 .item-name {

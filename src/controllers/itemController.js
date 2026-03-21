@@ -13,7 +13,11 @@ async function createItem(req, res, next) {
   try {
     const { name, room, container } = req.body;
 
-    if (!name || !room || !container) {
+    if (
+      !name?.trim()
+      || !room?.trim()
+      || !container?.trim()
+    ) {
       return res.status(400).json({
         message: 'I campi name, room e container sono obbligatori.',
       });
@@ -26,7 +30,51 @@ async function createItem(req, res, next) {
   }
 }
 
+async function updateItem(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { name, room, container } = req.body;
+
+    if (
+      !name?.trim()
+      || !room?.trim()
+      || !container?.trim()
+    ) {
+      return res.status(400).json({
+        message: 'I campi name, room e container sono obbligatori.',
+      });
+    }
+
+    const item = await itemService.updateItem(id, { name, room, container });
+
+    if (!item) {
+      return res.status(404).json({ message: 'Oggetto non trovato.' });
+    }
+
+    res.status(200).json(item);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function removeItem(req, res, next) {
+  try {
+    const { id } = req.params;
+    const deleted = await itemService.deleteItem(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Oggetto non trovato.' });
+    }
+
+    res.status(200).json({ message: 'Oggetto eliminato con successo.' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   listItems,
   createItem,
+  updateItem,
+  removeItem,
 };
