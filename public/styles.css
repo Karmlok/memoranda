@@ -135,8 +135,59 @@ button:hover {
   margin: 1rem 0 0;
   padding: 0;
   display: grid;
+  gap: 0.75rem;
+}
+
+.room-group,
+.container-group {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fcfdff;
+}
+
+.container-list,
+.item-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.item-card-list {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.8rem;
+}
+
+.toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: left;
+  background: transparent;
+  color: #1f3270;
+  border-radius: 12px;
+}
+
+.toggle-btn:hover {
+  background: #eef3ff;
+}
+
+.toggle-icon {
+  width: 1rem;
+  display: inline-flex;
+  justify-content: center;
+  color: #43588f;
+}
+
+.group-count {
+  margin-left: auto;
+  background: #e4ebff;
+  color: #243967;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .item-card,

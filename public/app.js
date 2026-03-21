@@ -14,6 +14,8 @@ const containerSuggestions = document.getElementById('container-suggestions');
 let allItems = [];
 let editingItemId = null;
 let selectedRoom = '';
+const expandedRooms = new Set();
+const expandedContainers = new Set();
 
 function setFeedback(message, type = '') {
   feedback.textContent = message;
@@ -31,26 +33,152 @@ function renderItems(items) {
     return;
   }
 
-  items.forEach((item) => {
-    const li = document.createElement('li');
-    li.className = 'item-card';
-    const imageHtml = item.imagePath
-      ? `<img src="${item.imagePath}" alt="${item.name}" class="item-image" loading="lazy" />`
-      : '<div class="item-image-placeholder">Nessuna immagine</div>';
+  const groupedItems = groupItemsByRoomAndContainer(items);
+  syncExpansionState(groupedItems);
 
-    li.innerHTML = `
-      <p class="item-name">${item.name}</p>
-      ${imageHtml}
-      <div class="item-meta">
-        <p><span class="meta-label">Stanza:</span> ${item.room}</p>
-        <p><span class="meta-label">Contenitore:</span> ${item.container}</p>
-      </div>
-      <div class="item-actions">
-        <button type="button" class="item-action-btn btn-secondary edit-btn" data-id="${item.id}">Modifica</button>
-        <button type="button" class="item-action-btn delete-btn" data-id="${item.id}">Elimina</button>
-      </div>
+  groupedItems.forEach((roomGroup) => {
+    const roomElement = document.createElement('li');
+    roomElement.className = 'room-group';
+    const roomCount = roomGroup.containers.reduce((total, container) => total + container.items.length, 0);
+    const roomExpanded = expandedRooms.has(roomGroup.key);
+
+    roomElement.innerHTML = `
+      <button type="button" class="toggle-btn room-toggle-btn" data-room-key="${roomGroup.key}" aria-expanded="${roomExpanded}">
+        <span class="toggle-icon">${roomExpanded ? '▾' : '▸'}</span>
+        <span>${roomGroup.name}</span>
+        <span class="group-count">${roomCount}</span>
+      </button>
     `;
-    itemsList.appendChild(li);
+
+    if (roomExpanded) {
+      const containerList = document.createElement('ul');
+      containerList.className = 'container-list';
+
+      roomGroup.containers.forEach((containerGroup) => {
+        const containerElement = document.createElement('li');
+        containerElement.className = 'container-group';
+        const containerExpanded = expandedContainers.has(containerGroup.key);
+
+        containerElement.innerHTML = `
+          <button type="button" class="toggle-btn container-toggle-btn" data-container-key="${containerGroup.key}" aria-expanded="${containerExpanded}">
+            <span class="toggle-icon">${containerExpanded ? '▾' : '▸'}</span>
+            <span>${containerGroup.name}</span>
+            <span class="group-count">${containerGroup.items.length}</span>
+          </button>
+        `;
+
+        if (containerExpanded) {
+          const itemCards = document.createElement('ul');
+          itemCards.className = 'item-card-list';
+          containerGroup.items.forEach((item) => {
+            itemCards.appendChild(createItemCard(item));
+          });
+          containerElement.appendChild(itemCards);
+        }
+
+        containerList.appendChild(containerElement);
+      });
+
+      roomElement.appendChild(containerList);
+    }
+
+    itemsList.appendChild(roomElement);
+  });
+}
+
+function createItemCard(item) {
+  const li = document.createElement('li');
+  li.className = 'item-card';
+  const imageHtml = item.imagePath
+    ? `<img src="${item.imagePath}" alt="${item.name}" class="item-image" loading="lazy" />`
+    : '<div class="item-image-placeholder">Nessuna immagine</div>';
+
+  li.innerHTML = `
+    <p class="item-name">${item.name}</p>
+    ${imageHtml}
+    <div class="item-meta">
+      <p><span class="meta-label">Stanza:</span> ${item.room}</p>
+      <p><span class="meta-label">Contenitore:</span> ${item.container}</p>
+    </div>
+    <div class="item-actions">
+      <button type="button" class="item-action-btn btn-secondary edit-btn" data-id="${item.id}">Modifica</button>
+      <button type="button" class="item-action-btn delete-btn" data-id="${item.id}">Elimina</button>
+    </div>
+  `;
+
+  return li;
+}
+
+function buildGroupKey(room, container = '') {
+  return `${normalizeValue(room)}::${normalizeValue(container)}`;
+}
+
+function groupItemsByRoomAndContainer(items) {
+  const roomsMap = new Map();
+
+  items.forEach((item) => {
+    const roomKey = buildGroupKey(item.room);
+    const containerKey = buildGroupKey(item.room, item.container);
+
+    if (!roomsMap.has(roomKey)) {
+      roomsMap.set(roomKey, {
+        key: roomKey,
+        name: item.room.trim(),
+        containers: new Map(),
+      });
+    }
+
+    const roomGroup = roomsMap.get(roomKey);
+
+    if (!roomGroup.containers.has(containerKey)) {
+      roomGroup.containers.set(containerKey, {
+        key: containerKey,
+        name: item.container.trim(),
+        items: [],
+      });
+    }
+
+    roomGroup.containers.get(containerKey).items.push(item);
+  });
+
+  return Array.from(roomsMap.values())
+    .map((room) => ({
+      ...room,
+      containers: Array.from(room.containers.values()).sort((a, b) => a.name.localeCompare(b.name, 'it')),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'it'));
+}
+
+function syncExpansionState(groupedItems) {
+  const validRoomKeys = new Set(groupedItems.map((group) => group.key));
+  expandedRooms.forEach((roomKey) => {
+    if (!validRoomKeys.has(roomKey)) {
+      expandedRooms.delete(roomKey);
+    }
+  });
+
+  const validContainerKeys = new Set();
+  groupedItems.forEach((roomGroup) => {
+    roomGroup.containers.forEach((container) => {
+      validContainerKeys.add(container.key);
+    });
+  });
+  expandedContainers.forEach((containerKey) => {
+    if (!validContainerKeys.has(containerKey)) {
+      expandedContainers.delete(containerKey);
+    }
+  });
+
+  groupedItems.forEach((roomGroup) => {
+    if (!expandedRooms.has(roomGroup.key)) {
+      expandedRooms.add(roomGroup.key);
+    }
+
+    roomGroup.containers.forEach((containerGroup) => {
+      if (!expandedContainers.has(containerGroup.key)) {
+        expandedContainers.add(containerGroup.key);
+      }
+    });
   });
 }
 
@@ -249,6 +377,30 @@ form.addEventListener('submit', async (event) => {
 
 itemsList.addEventListener('click', async (event) => {
   const target = event.target;
+  const roomToggleButton = target.closest('.room-toggle-btn');
+  if (roomToggleButton) {
+    const roomKey = roomToggleButton.dataset.roomKey;
+    if (expandedRooms.has(roomKey)) {
+      expandedRooms.delete(roomKey);
+    } else {
+      expandedRooms.add(roomKey);
+    }
+    applySearchFilter();
+    return;
+  }
+
+  const containerToggleButton = target.closest('.container-toggle-btn');
+  if (containerToggleButton) {
+    const containerKey = containerToggleButton.dataset.containerKey;
+    if (expandedContainers.has(containerKey)) {
+      expandedContainers.delete(containerKey);
+    } else {
+      expandedContainers.add(containerKey);
+    }
+    applySearchFilter();
+    return;
+  }
+
   const itemId = target.dataset.id;
 
   if (!itemId) {
