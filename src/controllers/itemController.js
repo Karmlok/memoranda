@@ -1,4 +1,5 @@
 const itemService = require('../services/itemService');
+const { saveBase64Image } = require('../utils/imageStore');
 
 async function listItems(req, res, next) {
   try {
@@ -11,7 +12,13 @@ async function listItems(req, res, next) {
 
 async function createItem(req, res, next) {
   try {
-    const { name, room, container } = req.body;
+    const {
+      name,
+      room,
+      container,
+      imageData,
+      imageName,
+    } = req.body;
 
     if (
       !name?.trim()
@@ -23,7 +30,14 @@ async function createItem(req, res, next) {
       });
     }
 
-    const item = await itemService.addItem({ name, room, container });
+    const imagePath = await saveBase64Image(imageData, imageName || name);
+
+    const item = await itemService.addItem({
+      name,
+      room,
+      container,
+      imagePath,
+    });
     res.status(201).json(item);
   } catch (error) {
     next(error);
@@ -33,7 +47,13 @@ async function createItem(req, res, next) {
 async function updateItem(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, room, container } = req.body;
+    const {
+      name,
+      room,
+      container,
+      imageData,
+      imageName,
+    } = req.body;
 
     if (
       !name?.trim()
@@ -45,7 +65,14 @@ async function updateItem(req, res, next) {
       });
     }
 
-    const item = await itemService.updateItem(id, { name, room, container });
+    const imagePath = await saveBase64Image(imageData, imageName || name);
+
+    const item = await itemService.updateItem(id, {
+      name,
+      room,
+      container,
+      imagePath,
+    });
 
     if (!item) {
       return res.status(404).json({ message: 'Oggetto non trovato.' });
