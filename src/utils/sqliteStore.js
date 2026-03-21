@@ -17,6 +17,15 @@ function run(db, sql, params = []) {
   return statement.run(...params);
 }
 
+function ensureImagePathColumn(db) {
+  const columns = all(db, 'PRAGMA table_info(items)');
+  const hasImagePath = columns.some((column) => column.name === 'image_path');
+
+  if (!hasImagePath) {
+    run(db, 'ALTER TABLE items ADD COLUMN image_path TEXT');
+  }
+}
+
 async function migrateLegacyJson(db) {
   try {
     const fileContent = await fs.readFile(LEGACY_JSON_FILE, 'utf8');
@@ -30,14 +39,15 @@ async function migrateLegacyJson(db) {
       run(
         db,
         `
-          INSERT OR IGNORE INTO items (id, name, room, container, created_at)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT OR IGNORE INTO items (id, name, room, container, image_path, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
         `,
         [
           item.id,
           item.name,
           item.room,
           item.container,
+          item.imagePath || null,
           item.createdAt || new Date().toISOString(),
         ],
       );
@@ -65,11 +75,13 @@ async function initializeDatabase() {
         name TEXT NOT NULL,
         room TEXT NOT NULL,
         container TEXT NOT NULL,
+        image_path TEXT,
         created_at TEXT NOT NULL
       )
     `,
   );
 
+  ensureImagePathColumn(db);
   await migrateLegacyJson(db);
 
   database = db;
