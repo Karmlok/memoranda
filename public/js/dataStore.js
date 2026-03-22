@@ -16,70 +16,63 @@ async function parseResponse(response, fallbackMessage) {
   return payload;
 }
 
+async function request(path = '', options, fallbackMessage) {
+  const response = await fetch(`${API_BASE}${path}`, options);
+  return parseResponse(response, fallbackMessage);
+}
+
 export const dataStore = {
   async getAllItems() {
-    const response = await fetch(API_BASE);
-    return parseResponse(response, 'Errore nel caricamento oggetti');
+    return request('', undefined, 'Errore nel caricamento oggetti');
   },
 
   async getItem(id) {
-    const response = await fetch(`${API_BASE}/${id}`);
-    return parseResponse(response, 'Oggetto non trovato');
+    return request(`/${id}`, undefined, 'Oggetto non trovato');
   },
 
   async createItem(data) {
-    const response = await fetch(API_BASE, {
+    return request('', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
-
-    return parseResponse(response, 'Errore durante il salvataggio');
+    }, 'Errore durante il salvataggio');
   },
 
   async updateItem(id, data) {
-    const response = await fetch(`${API_BASE}/${id}`, {
+    return request(`/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
-
-    return parseResponse(response, 'Errore durante il salvataggio');
+    }, 'Errore durante il salvataggio');
   },
 
   async deleteItem(id) {
-    const response = await fetch(`${API_BASE}/${id}`, {
+    return request(`/${id}`, {
       method: 'DELETE',
-    });
-
-    return parseResponse(response, "Errore durante l'eliminazione");
+    }, "Errore durante l'eliminazione");
   },
 
   async searchItems(query) {
     const encodedQuery = encodeURIComponent(query || '');
-    const response = await fetch(`${API_BASE}/search?q=${encodedQuery}`);
-    return parseResponse(response, 'Errore durante la ricerca');
+    return request(`/search?q=${encodedQuery}`, undefined, 'Errore durante la ricerca');
   },
 
   async exportItems() {
-    const response = await fetch(`${API_BASE}/export`);
-    return parseResponse(response, "Errore durante l'esportazione del backup.");
+    return request('/export', undefined, "Errore durante l'esportazione del backup.");
   },
 
   async importItems(data) {
-    const response = await fetch(`${API_BASE}/import`, {
+    return request('/import', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
-
-    return parseResponse(response, "Errore durante l'importazione del backup.");
+    }, "Errore durante l'importazione del backup.");
   },
 };
 
