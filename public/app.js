@@ -565,3 +565,19 @@ importFileInput.addEventListener('change', async (event) => {
   await importBackupFile(file);
 });
 loadItems();
+
+
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register('/service-worker.js');
+  } catch (error) {
+    console.warn('Registrazione service worker fallita:', error);
+  }
+}
+
+registerServiceWorker();
