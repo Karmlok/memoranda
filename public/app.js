@@ -21,6 +21,7 @@ let pendingHighlightItemId = null;
 const expandedRooms = new Set();
 const expandedContainers = new Set();
 
+// Keep all API access centralized in dataStore.js.
 const dataStorePromise = import('/js/dataStore.js').then((module) => module.dataStore || window.dataStore);
 
 async function getDataStore() {
