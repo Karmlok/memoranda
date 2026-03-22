@@ -21,6 +21,12 @@ let pendingHighlightItemId = null;
 const expandedRooms = new Set();
 const expandedContainers = new Set();
 
+const dataStorePromise = import('/js/dataStore.js').then((module) => module.dataStore || window.dataStore);
+
+async function getDataStore() {
+  return dataStorePromise;
+}
+
 function setFeedback(message, type = '') {
   feedback.textContent = message;
   feedback.className = `feedback ${type}`.trim();
@@ -302,19 +308,9 @@ function downloadJsonFile(content, filename) {
 
 async function exportBackup() {
   try {
-    const response = await fetch('/api/items/export');
-    const backupText = await response.text();
-
-    if (!response.ok) {
-      let message = "Errore durante l'esportazione del backup.";
-      try {
-        const errorData = JSON.parse(backupText);
-        message = errorData.message || message;
-      } catch (parseError) {
-        // noop
-      }
-      throw new Error(message);
-    }
+    const dataStore = await getDataStore();
+    const backupData = await dataStore.exportItems();
+    const backupText = typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
 
     const today = new Date().toISOString().slice(0, 10);
     downloadJsonFile(backupText, `memoranda-backup-${today}.json`);
@@ -335,19 +331,8 @@ async function importBackupFile(file) {
       throw new Error('File JSON non valido.');
     }
 
-    const response = await fetch('/api/items/import', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(parsedJson),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Errore durante l'importazione del backup.");
-    }
+    const dataStore = await getDataStore();
+    const data = await dataStore.importItems(parsedJson);
 
     setFeedback(data.message, 'success');
     resetFormToCreateMode();
@@ -400,14 +385,8 @@ function updateRoomFilterOptions() {
 
 async function loadItems() {
   try {
-    const response = await fetch('/api/items');
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Errore nel caricamento oggetti');
-    }
-
-    allItems = data;
+    const dataStore = await getDataStore();
+    allItems = await dataStore.getAllItems();
     updateRoomFilterOptions();
     applySearchFilter();
     updateAutocomplete();
@@ -437,22 +416,10 @@ form.addEventListener('submit', async (event) => {
       imageName: imageFile && imageFile.size > 0 ? imageFile.name : null,
     };
     const isEditing = Boolean(editingItemId);
-    const endpoint = isEditing ? `/api/items/${editingItemId}` : '/api/items';
-    const method = isEditing ? 'PUT' : 'POST';
-
-    const response = await fetch(endpoint, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Errore durante il salvataggio');
-    }
+    const dataStore = await getDataStore();
+    const data = isEditing
+      ? await dataStore.updateItem(editingItemId, payload)
+      : await dataStore.createItem(payload);
 
     const actionText = isEditing ? 'aggiornato' : 'salvato';
     pendingHighlightItemId = data.id;
@@ -516,15 +483,8 @@ itemsList.addEventListener('click', async (event) => {
   }
 
   try {
-    const response = await fetch(`/api/items/${itemId}`, {
-      method: 'DELETE',
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Errore durante l'eliminazione");
-    }
+    const dataStore = await getDataStore();
+    const data = await dataStore.deleteItem(itemId);
 
     if (editingItemId === itemId) {
       resetFormToCreateMode();
