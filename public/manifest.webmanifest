@@ -1,0 +1,25 @@
+{
+  "name": "Memoranda",
+  "short_name": "Memoranda",
+  "description": "Ricorda dove hai messo ogni oggetto, anche offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#2f6fed",
+  "lang": "it-IT",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%232f6fed'/%3E%3Cpath d='M48 58a10 10 0 0 1 10-10h76a10 10 0 0 1 10 10v76a10 10 0 0 1-10 10H58a10 10 0 0 1-10-10V58Z' fill='white'/%3E%3Cpath d='M76 82h40M76 102h40M76 122h24' stroke='%232f6fed' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%232f6fed'/%3E%3Cpath d='M128 154a27 27 0 0 1 27-26h202a27 27 0 0 1 27 26v202a27 27 0 0 1-27 28H155a27 27 0 0 1-27-28V154Z' fill='white'/%3E%3Cpath d='M205 220h103M205 272h103M205 324h62' stroke='%232f6fed' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
