@@ -140,3 +140,11 @@ vite.config.ts.timestamp-*
 
 # SQLite database
 src/data/*.db
+# database
+*.db
+
+# immagini upload
+uploads/
+
+# sicurezza (se manca)
+node_modules/
